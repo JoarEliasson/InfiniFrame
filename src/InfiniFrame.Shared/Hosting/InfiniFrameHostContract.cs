@@ -9,13 +9,23 @@ namespace InfiniFrame.Hosting;
 ///     <see cref="IInfiniFrameHostProvider.ContractVersion" />. Use the constants (not <see cref="Version" />) so the
 ///     value is fixed at compile time: <c>new Version(InfiniFrameHostContract.MajorVersion, InfiniFrameHostContract.MinorVersion)</c>.
 ///     InfiniFrame rejects a provider with a different major version, or a newer minor version, before creating any host.
+///     Minor versions are additive: a provider compiled against an older minor version keeps working, and InfiniFrame
+///     rejects the newer settings for it because it cannot declare their capabilities.
+///     <list type="bullet">
+///         <item>1.0: the initial contract.</item>
+///         <item>
+///             1.1: <see cref="InfiniFrameHostCapabilities.Chromeless" />, <see cref="InfiniFrameHostCapabilities.Resizable" />
+///             and <see cref="InfiniFrameHostCapabilities.SizeConstraints" />, with the matching
+///             <see cref="InfiniFrameHostWindowRequest" /> fields.
+///         </item>
+///     </list>
 /// </remarks>
 public static class InfiniFrameHostContract {
     /// <summary>Major version of the host contract implemented by this InfiniFrame build.</summary>
     public const int MajorVersion = 1;
 
     /// <summary>Minor version of the host contract implemented by this InfiniFrame build.</summary>
-    public const int MinorVersion = 0;
+    public const int MinorVersion = 1;
 
     /// <summary>
     ///     Bridge script contract carried in <see cref="InfiniFrameHostWindowRequest.BridgeScript" />.

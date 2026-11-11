@@ -24,7 +24,11 @@ internal static class InfiniFrameHostedWindowRequestFactory {
         static () => new InfiniFrameWindowBuilder().CollectNativeParameters(),
         LazyThreadSafetyMode.ExecutionAndPublication);
 
-    /// <summary>Fields carried by <see cref="InfiniFrameHostWindowRequest" /> (directly or through its browser policy).</summary>
+    /// <summary>
+    ///     Fields carried by <see cref="InfiniFrameHostWindowRequest" /> (directly or through its browser policy). Chrome,
+    ///     resizability and size constraints are mapped only when the provider declares the matching capability, and are
+    ///     otherwise accepted only at their default.
+    /// </summary>
     internal static readonly IReadOnlySet<string> MappedFields = new HashSet<string>(StringComparer.Ordinal) {
         nameof(InfiniFrameNativeWindowParameters.StartUrl), nameof(InfiniFrameNativeWindowParameters.Title),
         nameof(InfiniFrameNativeWindowParameters.WindowIconFile), nameof(InfiniFrameNativeWindowParameters.UserAgent),
@@ -36,7 +40,10 @@ internal static class InfiniFrameHostedWindowRequestFactory {
         nameof(InfiniFrameNativeWindowParameters.DevToolsEnabled), nameof(InfiniFrameNativeWindowParameters.GrantBrowserPermissions),
         nameof(InfiniFrameNativeWindowParameters.MediaAutoplayEnabled), nameof(InfiniFrameNativeWindowParameters.FileSystemAccessEnabled),
         nameof(InfiniFrameNativeWindowParameters.WebSecurityEnabled), nameof(InfiniFrameNativeWindowParameters.JavascriptClipboardAccessEnabled),
-        nameof(InfiniFrameNativeWindowParameters.MediaStreamEnabled), nameof(InfiniFrameNativeWindowParameters.IgnoreCertificateErrorsEnabled)
+        nameof(InfiniFrameNativeWindowParameters.MediaStreamEnabled), nameof(InfiniFrameNativeWindowParameters.IgnoreCertificateErrorsEnabled),
+        nameof(InfiniFrameNativeWindowParameters.Chromeless), nameof(InfiniFrameNativeWindowParameters.Resizable),
+        nameof(InfiniFrameNativeWindowParameters.MinWidth), nameof(InfiniFrameNativeWindowParameters.MinHeight),
+        nameof(InfiniFrameNativeWindowParameters.MaxWidth), nameof(InfiniFrameNativeWindowParameters.MaxHeight)
     };
 
     /// <summary>Default-engine settings with no host-contract equivalent: accepted only at their default value.</summary>
@@ -45,11 +52,8 @@ internal static class InfiniFrameHostedWindowRequestFactory {
         nameof(InfiniFrameNativeWindowParameters.BrowserControlInitParameters), nameof(InfiniFrameNativeWindowParameters.DefaultNotificationIcon),
         nameof(InfiniFrameNativeWindowParameters.RemoteDebuggingPort), nameof(InfiniFrameNativeWindowParameters.NativeParent),
         nameof(InfiniFrameNativeWindowParameters.DragDropEnabled), nameof(InfiniFrameNativeWindowParameters.Zoom),
-        nameof(InfiniFrameNativeWindowParameters.MinWidth), nameof(InfiniFrameNativeWindowParameters.MinHeight),
-        nameof(InfiniFrameNativeWindowParameters.MaxWidth), nameof(InfiniFrameNativeWindowParameters.MaxHeight),
-        nameof(InfiniFrameNativeWindowParameters.CenterOnInitialize), nameof(InfiniFrameNativeWindowParameters.Chromeless),
-        nameof(InfiniFrameNativeWindowParameters.Transparent), nameof(InfiniFrameNativeWindowParameters.ZoomEnabled),
-        nameof(InfiniFrameNativeWindowParameters.WebInspectorEnabled), nameof(InfiniFrameNativeWindowParameters.Resizable),
+        nameof(InfiniFrameNativeWindowParameters.CenterOnInitialize), nameof(InfiniFrameNativeWindowParameters.Transparent),
+        nameof(InfiniFrameNativeWindowParameters.ZoomEnabled), nameof(InfiniFrameNativeWindowParameters.WebInspectorEnabled),
         nameof(InfiniFrameNativeWindowParameters.Topmost), nameof(InfiniFrameNativeWindowParameters.SmoothScrollingEnabled),
         nameof(InfiniFrameNativeWindowParameters.StatusBarEnabled), nameof(InfiniFrameNativeWindowParameters.BrowserShortcutsEnabled),
         nameof(InfiniFrameNativeWindowParameters.BackgroundColorR), nameof(InfiniFrameNativeWindowParameters.BackgroundColorG),
@@ -96,15 +100,9 @@ internal static class InfiniFrameHostedWindowRequestFactory {
         RejectChanged(violations, nameof(parameters.DragDropEnabled), parameters.DragDropEnabled, defaults.DragDropEnabled);
         RejectChanged(violations, nameof(parameters.Zoom), parameters.Zoom, defaults.Zoom);
         RejectChanged(violations, nameof(parameters.ZoomEnabled), parameters.ZoomEnabled, defaults.ZoomEnabled);
-        RejectChanged(violations, nameof(parameters.MinWidth), parameters.MinWidth, defaults.MinWidth);
-        RejectChanged(violations, nameof(parameters.MinHeight), parameters.MinHeight, defaults.MinHeight);
-        RejectChanged(violations, nameof(parameters.MaxWidth), parameters.MaxWidth, defaults.MaxWidth);
-        RejectChanged(violations, nameof(parameters.MaxHeight), parameters.MaxHeight, defaults.MaxHeight);
         RejectChanged(violations, "CenterOnInitialize (monitor-relative placement)", parameters.CenterOnInitialize, defaults.CenterOnInitialize);
-        RejectChanged(violations, nameof(parameters.Chromeless), parameters.Chromeless, defaults.Chromeless);
         RejectChanged(violations, nameof(parameters.Transparent), parameters.Transparent, defaults.Transparent);
         RejectChanged(violations, nameof(parameters.WebInspectorEnabled), parameters.WebInspectorEnabled, defaults.WebInspectorEnabled);
-        RejectChanged(violations, nameof(parameters.Resizable), parameters.Resizable, defaults.Resizable);
         RejectChanged(violations, nameof(parameters.Topmost), parameters.Topmost, defaults.Topmost);
         RejectChanged(violations, nameof(parameters.SmoothScrollingEnabled), parameters.SmoothScrollingEnabled, defaults.SmoothScrollingEnabled);
         RejectChanged(violations, nameof(parameters.StatusBarEnabled), parameters.StatusBarEnabled, defaults.StatusBarEnabled);
@@ -113,6 +111,22 @@ internal static class InfiniFrameHostedWindowRequestFactory {
             || parameters.BackgroundColorB != defaults.BackgroundColorB || parameters.BackgroundColorA != defaults.BackgroundColorA)
             violations.Add("BackgroundColor");
         RejectChanged(violations, "MenuBarJson (native menus)", parameters.MenuBarJson, defaults.MenuBarJson);
+
+        bool chromeless = parameters.Chromeless != defaults.Chromeless;
+        RequireForSetting(violations, capabilities, InfiniFrameHostCapabilities.Chromeless, nameof(parameters.Chromeless), chromeless);
+        bool fixedSize = parameters.Resizable != defaults.Resizable;
+        RequireForSetting(violations, capabilities, InfiniFrameHostCapabilities.Resizable, nameof(parameters.Resizable), fixedSize);
+        Size? minimumSize = null, maximumSize = null;
+        if (parameters.MinWidth != defaults.MinWidth || parameters.MinHeight != defaults.MinHeight)
+            minimumSize = new Size(parameters.MinWidth, parameters.MinHeight);
+        if (parameters.MaxWidth != defaults.MaxWidth || parameters.MaxHeight != defaults.MaxHeight)
+            maximumSize = new Size(parameters.MaxWidth, parameters.MaxHeight);
+        bool constrained = minimumSize is not null || maximumSize is not null;
+        RequireForSetting(violations, capabilities, InfiniFrameHostCapabilities.SizeConstraints,
+            "size constraints (MinWidth, MinHeight, MaxWidth, MaxHeight)", constrained);
+        if (constrained && (parameters.MinWidth < 0 || parameters.MinHeight < 0 || parameters.MaxWidth <= 0 || parameters.MaxHeight <= 0
+                || parameters.MinWidth > parameters.MaxWidth || parameters.MinHeight > parameters.MaxHeight))
+            violations.Add($"size constraints {parameters.MinWidth}x{parameters.MinHeight} to {parameters.MaxWidth}x{parameters.MaxHeight}");
 
         IInfiniFrameEventsStore events = builder.EventsStore;
         RequireForHandlers(violations, capabilities, InfiniFrameHostCapabilities.BoundsEvents, "WindowLocationChanged", events.WindowLocationChanged.Snapshot.Length);
@@ -154,7 +168,7 @@ internal static class InfiniFrameHostedWindowRequestFactory {
         Size? initialSize = null;
         if (!parameters.UseOsDefaultSize) {
             if (parameters.Width <= 0 || parameters.Height <= 0) violations.Add($"size {parameters.Width}x{parameters.Height}");
-            else initialSize = new Size(parameters.Width, parameters.Height);
+            else initialSize = ClampToConstraints(new Size(parameters.Width, parameters.Height), parameters);
         }
         Point? initialLocation = parameters.UseOsDefaultLocation ? null : new Point(parameters.Left, parameters.Top);
 
@@ -180,6 +194,10 @@ internal static class InfiniFrameHostedWindowRequestFactory {
             Title = parameters.Title ?? string.Empty,
             InitialLocation = initialLocation,
             InitialSize = initialSize,
+            Chromeless = parameters.Chromeless,
+            Resizable = parameters.Resizable,
+            MinimumSize = minimumSize,
+            MaximumSize = maximumSize,
             InitialState = initialState,
             InitialIconPng = icon,
             BrowserPolicy = new InfiniFrameHostBrowserPolicy {
@@ -209,8 +227,22 @@ internal static class InfiniFrameHostedWindowRequestFactory {
         return bytes;
     }
 
+    /// <summary>
+    ///     Clamps <paramref name="size" /> into the window's size constraints the way the default engine does (maximum
+    ///     first, then minimum). The defaults (0 and <see cref="int.MaxValue" />) leave it unchanged. Constraints are
+    ///     validated (minimum not above maximum) before a request is created.
+    /// </summary>
+    internal static Size ClampToConstraints(Size size, in InfiniFrameNativeWindowParameters parameters) => new(
+        Math.Max(Math.Min(size.Width, parameters.MaxWidth), parameters.MinWidth),
+        Math.Max(Math.Min(size.Height, parameters.MaxHeight), parameters.MinHeight));
+
     private static void RejectChanged<T>(List<string> violations, string name, T actual, T expected) {
         if (!EqualityComparer<T>.Default.Equals(actual, expected)) violations.Add(name);
+    }
+
+    private static void RequireForSetting(List<string> violations, InfiniFrameHostCapabilities declared,
+        InfiniFrameHostCapabilities required, string setting, bool requested) {
+        if (requested && !declared.HasFlag(required)) violations.Add($"{setting} (needs {required})");
     }
 
     private static void RequireForHandlers(List<string> violations, InfiniFrameHostCapabilities declared,

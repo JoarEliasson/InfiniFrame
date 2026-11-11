@@ -51,6 +51,18 @@ Lifecycle, documents, messages, resources, navigation, and current-URL reporting
 flags declare bounds, window state, focus, title, icon, their notifications, and native-close cancellation. A provider
 must implement the corresponding optional interfaces when it declares those operations.
 
+Contract 1.1 also adds the startup capabilities `Chromeless`, `Resizable`, and `SizeConstraints`, carried by matching
+fields on `InfiniFrameHostWindowRequest`. Providers without these flags receive the original defaults: normal chrome,
+resizable, and no size constraints. Nondefault settings require their corresponding flag. Runtime changes to chrome,
+resizability, or constraints remain unsupported.
+
+Sizes and bounds are outer window dimensions; for a chromeless window the browser fills that whole area. A minimum
+dimension of zero and a maximum dimension of `int.MaxValue` mean unconstrained. InfiniFrame clamps an explicit initial
+size and later `SetSize` calls into the startup constraints. An omitted initial size remains the provider's choice.
+Moves preserve the observed size, even when it is outside those constraints. `Resizable = false` restricts user resizing;
+programmatic bounds changes and requested window states still apply. Providers must confirm the actual result or report
+failure through the bounds/state contract.
+
 InfiniFrame rejects configuration requiring absent capabilities. The provider must reject any remaining request it
 cannot honor exactly with `NotSupportedException` before creating native resources for that window. Unsupported
 configuration is never silently ignored. The hosted contract does not expose every built-in-backend feature; for
@@ -86,7 +98,8 @@ These bounds apply to returned asynchronous operations, not synchronous code tha
 
 Providers should report the version they compiled against using the constants
 `new Version(InfiniFrameHostContract.MajorVersion, InfiniFrameHostContract.MinorVersion)`. InfiniFrame rejects a
-different major version or a newer minor version before creating a host.
+different major version or a newer minor version before creating a host. Contract 1.1 accepts providers compiled
+against 1.0 with their original capabilities and defaults. The JavaScript bridge contract remains version 1.
 
 ## Hosted Blazor pages
 

@@ -41,8 +41,41 @@ public sealed class InfiniFrameHostWindowRequest {
     /// <summary>Initial location in screen coordinates, or <see langword="null" /> for the provider's default.</summary>
     public Point? InitialLocation { get; init; }
 
-    /// <summary>Initial outer size, or <see langword="null" /> for the provider's default.</summary>
+    /// <summary>
+    ///     Initial outer size, or <see langword="null" /> for the provider's default. When <see cref="Chromeless" /> is
+    ///     <see langword="true" /> the window has no non-client area, so this is also the content (browser) area. When
+    ///     size constraints are sent, InfiniFrame has already clamped this value into them, as the default engine does.
+    /// </summary>
     public Size? InitialSize { get; init; }
+
+    /// <summary>
+    ///     <see langword="true" /> for a window without title bar, borders or other non-client area: the browser fills
+    ///     the whole window, so the outer bounds (<see cref="InitialSize" />, <see cref="IInfiniFrameWindowHostBounds" />)
+    ///     equal the content area. Only sent as <see langword="true" /> when
+    ///     <see cref="InfiniFrameHostCapabilities.Chromeless" /> is declared. Contract 1.1.
+    /// </summary>
+    public bool Chromeless { get; init; }
+
+    /// <summary>
+    ///     <see langword="false" /> when the user must not be able to resize the window (no resize border or maximize
+    ///     affordance). Programmatic bounds changes and requested window states still apply. Only sent as
+    ///     <see langword="false" /> when <see cref="InfiniFrameHostCapabilities.Resizable" /> is declared. Contract 1.1.
+    /// </summary>
+    public bool Resizable { get; init; } = true;
+
+    /// <summary>
+    ///     Smallest outer size the user can resize the window to, in the same units as <see cref="InitialSize" />, or
+    ///     <see langword="null" /> for none. A zero dimension is unconstrained. Only sent when
+    ///     <see cref="InfiniFrameHostCapabilities.SizeConstraints" /> is declared. Contract 1.1.
+    /// </summary>
+    public Size? MinimumSize { get; init; }
+
+    /// <summary>
+    ///     Largest outer size the user can resize the window to, in the same units as <see cref="InitialSize" />, or
+    ///     <see langword="null" /> for none. A dimension of <see cref="int.MaxValue" /> is unconstrained. Only sent when
+    ///     <see cref="InfiniFrameHostCapabilities.SizeConstraints" /> is declared. Contract 1.1.
+    /// </summary>
+    public Size? MaximumSize { get; init; }
 
     /// <summary>Initial state. A non-normal value is only sent when <see cref="InfiniFrameHostCapabilities.WindowState" /> is declared.</summary>
     public InfiniFrameHostWindowState InitialState { get; init; }

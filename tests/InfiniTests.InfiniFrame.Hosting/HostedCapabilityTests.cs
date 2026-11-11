@@ -186,7 +186,31 @@ public sealed class HostedCapabilityTests {
     public async Task UnknownContractMajorOrNewerMinor_IsRejected(CancellationToken ct) {
         await Assert.That(() => new InfiniFrameHostedRuntime(new ScriptedHostProvider { ContractVersion = new Version(2, 0) }, Guid.NewGuid()))
             .Throws<NotSupportedException>();
-        await Assert.That(() => new InfiniFrameHostedRuntime(new ScriptedHostProvider { ContractVersion = new Version(1, 1) }, Guid.NewGuid()))
+        await Assert.That(() => new InfiniFrameHostedRuntime(new ScriptedHostProvider { ContractVersion = new Version(1, InfiniFrameHostContract.MinorVersion + 1) }, Guid.NewGuid()))
             .Throws<NotSupportedException>();
+    }
+
+    [Test]
+    [Timeout(30_000)]
+    public async Task OlderMinorContract_AcceptsDefaults_AndRejectsUndeclaredFrameSettings(CancellationToken ct) {
+        await using HostedHarness harness = await HostedHarness.StartAsync(new ScriptedHostProvider(InfiniFrameHostCapabilities.None) {
+            ContractVersion = new Version(1, 0)
+        });
+        (InfiniFrameHostedWindow window, ScriptedWindowHostCore host) = await harness.CreateAsync();
+        await window.WaitForReadyAsync(ct);
+
+        await Assert.That(InfiniFrameHostContract.Version).IsEqualTo(new Version(1, 1));
+        await Assert.That(host.Request.BridgeContractVersion).IsEqualTo(1);
+        await Assert.That(host.Request.Chromeless).IsFalse();
+        await Assert.That(host.Request.Resizable).IsTrue();
+        await Assert.That(host.Request.MinimumSize).IsNull();
+        await Assert.That(host.Request.MaximumSize).IsNull();
+
+        NotSupportedException exception = await Expect.ThrowsAsync<NotSupportedException>(() => Task.Run(() => harness.Build(builder => builder
+            .SetChromeless(true).SetResizable(false).SetMinSize(400, 300)), ct));
+        await Assert.That(exception.Message).Contains("Chromeless (needs Chromeless)");
+        await Assert.That(exception.Message).Contains("Resizable (needs Resizable)");
+        await Assert.That(exception.Message).Contains("needs SizeConstraints");
+        await Assert.That(harness.Host.Windows.Count).IsEqualTo(1);
     }
 }

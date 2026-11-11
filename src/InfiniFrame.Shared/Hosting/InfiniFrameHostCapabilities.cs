@@ -28,6 +28,26 @@ public enum InfiniFrameHostCapabilities : long {
     /// <summary>The window host implements <see cref="IInfiniFrameWindowHostIcon" /> and honours an initial icon.</summary>
     Icon = 1L << 4,
 
+    /// <summary>
+    ///     The provider honours <see cref="InfiniFrameHostWindowRequest.Chromeless" />: a window without title bar,
+    ///     borders or other non-client area, whose browser fills the whole window, so the window bounds are the content
+    ///     area. Contract 1.1.
+    /// </summary>
+    Chromeless = 1L << 5,
+
+    /// <summary>
+    ///     The provider honours <see cref="InfiniFrameHostWindowRequest.Resizable" /> set to <see langword="false" />:
+    ///     the user cannot resize the window, while bounds set through <see cref="IInfiniFrameWindowHostBounds" /> still
+    ///     apply. Contract 1.1.
+    /// </summary>
+    Resizable = 1L << 6,
+
+    /// <summary>
+    ///     The provider honours <see cref="InfiniFrameHostWindowRequest.MinimumSize" /> and
+    ///     <see cref="InfiniFrameHostWindowRequest.MaximumSize" /> for user resizing. Contract 1.1.
+    /// </summary>
+    SizeConstraints = 1L << 7,
+
     /// <summary>The provider raises <see cref="IInfiniFrameWindowHostEvents.BoundsChanged" />.</summary>
     BoundsEvents = 1L << 8,
 

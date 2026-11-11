@@ -12,8 +12,10 @@ namespace InfiniFrame.Window.Hosting;
 /// <remarks>
 ///     Position, size, state and decorations. Operations backed by an optional capability call the provider and only
 ///     report success once the provider confirms the actual native result; undeclared operations throw
-///     <see cref="NotSupportedException" />. Getters for settings the request mapping only accepts at their default
-///     (size constraints, resizability, topmost, zoom, chrome) return those defaults, which are then true by contract.
+///     <see cref="NotSupportedException" />. Chrome, resizability and size constraints are startup settings: the request
+///     mapping forwards them only to a provider that declares their capability (and otherwise accepts them only at their
+///     default), so their getters return the startup values, which are then true by contract. Changing them at runtime is
+///     not part of the contract. Topmost and zoom are accepted only at their defaults.
 /// </remarks>
 internal sealed partial class InfiniFrameHostedWindow {
     private readonly object _nativeStateGate = new();
@@ -69,7 +71,9 @@ internal sealed partial class InfiniFrameHostedWindow {
 
     public void SetSize(int width, int height) {
         Rectangle bounds = GetBounds();
-        bounds.Size = new Size(width, height);
+        // Hosted policy: requested sizes respect the startup constraints. The provider still confirms the native
+        // result or reports failure. Moves resend the observed size unchanged, even outside those constraints.
+        bounds.Size = InfiniFrameHostedWindowRequestFactory.ClampToConstraints(new Size(width, height), _configuration.StartupParameters);
         SetBounds(bounds);
     }
 
