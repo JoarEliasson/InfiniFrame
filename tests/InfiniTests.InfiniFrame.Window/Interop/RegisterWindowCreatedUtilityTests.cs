@@ -15,6 +15,55 @@ namespace InfiniTests.InfiniFrame.Window.Interop;
 // ---------------------------------------------------------------------------------------------------------------------
 public class RegisterWindowCreatedUtilityTests {
     [Test]
+    [Timeout(10_000)]
+    public async Task DefaultBuilder_WithoutOptionalFeatures_AcknowledgesReady(CancellationToken ct) {
+        var builder = InfiniFrameWindowBuilder.Create();
+        RecordingInfiniFrameWindowSubstitute window = new RecordingInfiniFrameWindowSubstitute().BindToBuilder(builder);
+        var events = new InfiniFrameEvents(new InfiniFrameEventsStore(), NullLogger<InfiniFrameEvents>.Instance);
+        events.PopulateFromBuilderEventStore(builder.EventsStore);
+        events.AssignToWindow(window.Window);
+        var nativeParameters = default(InfiniFrameNativeWindowParameters);
+        events.AssignToNativeParameters(ref nativeParameters);
+
+        // Exercise normal builder/event setup without manually invoking the registration utility or WindowCreated.
+        events.OnWebMessageReceived("""{"id":"__infiniframe:ready","command":"Post","data":null,"version":2}""");
+        DateTime deadline = DateTime.UtcNow.AddSeconds(2);
+        while (window.CountEnvelopeMessagesById("__infiniframe:ready:ack") == 0 && DateTime.UtcNow < deadline)
+            await Task.Delay(5, ct);
+
+        await Assert.That(window.CountEnvelopeMessagesById("__infiniframe:ready:ack")).IsEqualTo(1);
+        await Assert.That(window.GetSentMessagesSnapshot().Count).IsEqualTo(1);
+        await Assert.That(events.EventsStore.WebMessagePostData.ContainsKey(JsHandlerNames.TitleChanged)).IsFalse();
+    }
+
+    [Test]
+    [Timeout(10_000)]
+    public async Task FailedReadyAck_CanRetry_WithoutEnablingOptionalFeatures(CancellationToken ct) {
+        var builder = InfiniFrameWindowBuilder.Create();
+        RecordingInfiniFrameWindowSubstitute window = new RecordingInfiniFrameWindowSubstitute().BindToBuilder(builder);
+        var events = new InfiniFrameEvents(new InfiniFrameEventsStore(), NullLogger<InfiniFrameEvents>.Instance);
+        events.PopulateFromBuilderEventStore(builder.EventsStore);
+        events.AssignToWindow(window.Window);
+        int sendAttempts = 0;
+        window.WebMessaging.SendWebMessageAsync(Any<string>(), Any<CancellationToken>())
+            .Returns(() => Interlocked.Increment(ref sendAttempts) == 1
+                ? ValueTask.FromException(new InvalidOperationException("First transport submission failed"))
+                : ValueTask.CompletedTask);
+
+        string ready = InteropEnvelopeProtocol.CreateEnvelopeMessage(JsHandlerNames.WindowReady);
+        DateTime deadline = DateTime.UtcNow.AddSeconds(2);
+        do {
+            events.OnWebMessageReceived(ready);
+            await Task.Delay(5, ct);
+        } while (Volatile.Read(ref sendAttempts) < 2 && DateTime.UtcNow < deadline);
+
+        await Assert.That(Volatile.Read(ref sendAttempts)).IsEqualTo(2);
+        events.OnWebMessageReceived(ready);
+        await Task.Delay(50, ct);
+        await Assert.That(Volatile.Read(ref sendAttempts)).IsEqualTo(2);
+    }
+
+    [Test]
     public async Task Registration_IsGatedByWindowReadyHandshake(CancellationToken ct = default) {
         // Arrange
         const string registrationMessageId = "__infiniframe:register:test";

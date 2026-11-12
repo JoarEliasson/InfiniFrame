@@ -7,6 +7,7 @@ using InfiniFrame.NativeBridge.Parameters.Window;
 using InfiniFrame.Security;
 using InfiniFrame.Window.Events;
 using InfiniFrame.Window.Features.InstanceArbitration;
+using InfiniFrame.Window.Interop;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InfiniFrame.Window.Builder;
@@ -38,6 +39,8 @@ public class InfiniFrameWindowBuilder : IInfiniFrameWindowBuilder {
         Services = (collection ?? new ServiceCollection())
             .AddLogging()
             .AddInfiniFrame();
+        // The bridge always sends ready, even when no optional window-message features are enabled.
+        RegisterWindowCreatedUtility.EnsureReadyHandshake(this);
     }
 
     internal void SetApplicationHandle(IntPtr handle) => ApplicationHandle = handle;

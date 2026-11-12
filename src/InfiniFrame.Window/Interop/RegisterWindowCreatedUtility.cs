@@ -2,6 +2,7 @@
 // Imports
 // ---------------------------------------------------------------------------------------------------------------------
 using System.Runtime.CompilerServices;
+using InfiniFrame.Hosting;
 using InfiniFrame.Js.Interop;
 using InfiniFrame.Utilities;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,13 @@ public static class RegisterWindowCreatedUtility {
     // -----------------------------------------------------------------------------------------------------------------
     // Methods
     // -----------------------------------------------------------------------------------------------------------------
+    /// <summary>Installs the mandatory bridge handshake without enabling any optional feature registrations.</summary>
+    internal static void EnsureReadyHandshake(IInfiniFrameWindowBuilder builder) {
+        WindowReadyRegistrationState state = RegistrationStates.GetOrCreateValue(builder);
+        EnsureWindowCreatedHandler(builder, state);
+        EnsureReadyHandler(builder, state);
+    }
+
     /// <summary>
     ///     Registers a web message to be sent to a new window when it signals readiness.
     /// </summary>
@@ -58,10 +66,26 @@ public static class RegisterWindowCreatedUtility {
         }
 
         builder.RegisterWebMessagePostHandler(JsHandlerNames.WindowReady, handler: (window, payload) => {
+            if (window.IsClosedOrClosing()) return;
+            ulong? document = null;
+            if (window is IInfiniFrameDocumentWindow documentWindow) {
+                // Use the producing callback's identity, never whichever document happens to be current later.
+                if (documentWindow.IncomingMessageDocument is not {} source
+                    || documentWindow.GetDocumentLifetime(source).IsCancellationRequested) return;
+                document = source;
+            }
+
             WindowRegistrationState windowState;
             string[] registrationMessages;
             lock (state.Lock) {
                 windowState = state.Windows.GetOrCreateValue(window);
+                if (windowState.Document != document) {
+                    // Keep only the latest document's state. In-flight sends retain their own state, so their
+                    // completion cannot acknowledge or reset the replacement document's handshake.
+                    windowState = new WindowRegistrationState { Document = document };
+                    state.Windows.Remove(window);
+                    state.Windows.Add(window, windowState);
+                }
                 if (!windowState.StateMachine.TryBeginRegistrationSendOnReady()) return;
 
                 registrationMessages = [.. state.RegistrationMessageIds];
@@ -87,7 +111,7 @@ public static class RegisterWindowCreatedUtility {
     ) {
         bool allMessagesSent = false;
         try {
-            allMessagesSent = await SendRegistrationsAndAckAsync(window, registrationMessages).ConfigureAwait(false);
+            allMessagesSent = await SendRegistrationsAndAckAsync(window, windowState.Document, registrationMessages).ConfigureAwait(false);
         }
         catch (Exception ex) when (ExceptionsUtility.IsNonFatalException(ex)) {
             // Non-fatal: registration messages may fail if the window is closing.
@@ -99,13 +123,22 @@ public static class RegisterWindowCreatedUtility {
         }
     }
 
-    private static async Task<bool> SendRegistrationsAndAckAsync(IInfiniFrameWindow window, IReadOnlyList<string> registrationMessages) {
+    private static async Task<bool> SendRegistrationsAndAckAsync(IInfiniFrameWindow window, ulong? document, IReadOnlyList<string> registrationMessages) {
         foreach (string registrationMessage in registrationMessages) {
-            string envelope = InteropEnvelopeProtocol.CreateEnvelopeMessage(registrationMessage);
-            await window.SendWebMessageAsync(envelope).ConfigureAwait(false);
+            await SendReadyMessageAsync(window, document, registrationMessage).ConfigureAwait(false);
         }
 
-        await window.SendWebMessageAsync(InteropEnvelopeProtocol.CreateEnvelopeMessage(JsHandlerNames.WindowReadyAck)).ConfigureAwait(false);
+        await SendReadyMessageAsync(window, document, JsHandlerNames.WindowReadyAck).ConfigureAwait(false);
         return true;
+    }
+
+    private static ValueTask SendReadyMessageAsync(IInfiniFrameWindow window, ulong? document, string messageId) {
+        // Exact-document delivery checks document retirement; retain the public sender's close-request gate too.
+        // A vetoed close may reopen the window, so an interrupted handshake must remain retryable.
+        ObjectDisposedException.ThrowIf(window.IsClosedOrClosing(), window.GetType().Name);
+        string envelope = InteropEnvelopeProtocol.CreateEnvelopeMessage(messageId);
+        return window is IInfiniFrameDocumentWindow documentWindow && document is {} source
+            ? documentWindow.SendWebMessageForDocumentAsync(envelope, source, CancellationToken.None)
+            : window.SendWebMessageAsync(envelope);
     }
 }
