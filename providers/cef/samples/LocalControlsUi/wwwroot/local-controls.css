@@ -1,0 +1,67 @@
+/* All rules are external. Dynamic indicator/gauge widths and drag positions use style attributes. */
+html, body { margin: 0; }
+.local-controls { width: 1024px; height: 600px; display: flex; flex-direction: column; overflow: hidden; color: #243c45; background: #f3f6f5; font: 14px/1.45 "Segoe UI", system-ui, sans-serif; }
+.local-controls *, .local-controls *::before, .local-controls *::after { box-sizing: border-box; }
+.local-controls h1, .local-controls h2, .local-controls h3, .local-controls p { margin: 0; }
+.local-controls h1 { font-size: 25px; letter-spacing: -.6px; font-weight: 650; }
+.local-controls h2 { font-size: 16px; font-weight: 650; }
+.local-controls h3 { font-size: 14px; }
+.local-controls p { color: #5f747c; }
+.local-controls button, .local-controls input, .local-controls a { font: inherit; }
+.local-controls button, .local-controls .lc-button { min-height: 36px; border: 1px solid #c8d5d6; border-radius: 6px; padding: 7px 12px; background: #fff; color: #294c59; cursor: pointer; text-decoration: none; }
+.local-controls button:hover, .local-controls .lc-button:hover { background: #edf4f3; }
+.local-controls button:disabled { opacity: .6; cursor: wait; }
+.local-controls :focus-visible { outline: 3px solid #c47b2e; outline-offset: 3px; }
+.local-controls .lc-primary { background: #2d6573; color: #fff; border-color: #2d6573; }
+.local-controls .lc-primary:hover { background: #204f5b; }
+.lc-header { height: 68px; flex: none; padding: 10px 25px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #d5dfdf; background: #fff; }
+.lc-header strong { font-size: 21px; letter-spacing: -.4px; }
+.lc-eyebrow { color: #68828a; letter-spacing: 1.5px; font-size: 10px; font-weight: 700; }
+.lc-header-note { display: flex; align-items: flex-end; flex-direction: column; gap: 4px; color: #6c8085; font-size: 11px; }
+.lc-badge { border: 1px solid #c8d9d8; background: #edf5f2; color: #47736b; padding: 3px 7px; border-radius: 4px; font-size: 10px; letter-spacing: .6px; font-weight: 700; white-space: nowrap; }
+.lc-body { flex: 1; min-height: 0; display: flex; }
+.lc-nav { width: 185px; flex: none; display: flex; flex-direction: column; padding: 23px 13px 16px; gap: 6px; background: #eaf0ee; border-right: 1px solid #d5dfdf; }
+.local-controls .lc-nav a, .local-controls .lc-nav button { display: block; text-align: left; padding: 10px 12px; color: #526b73; border: 0; border-radius: 5px; background: transparent; text-decoration: none; min-height: 40px; }
+.local-controls .lc-nav .active { color: #254f5c; background: #d6e5e1; font-weight: 650; }
+.local-controls .lc-nav a:hover, .local-controls .lc-nav button:hover { background: #dfeae7; }
+.lc-nav-note { margin-top: auto; padding: 12px; color: #72858b; font-size: 11px; }
+.lc-main { flex: 1; min-width: 0; padding: 20px 24px; }
+.lc-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.lc-heading p { font-size: 12px; margin-top: 2px; }
+.lc-workspace { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 17px; }
+.lc-panel { background: #fff; border: 1px solid #d7e0df; border-radius: 9px; padding: 16px; }
+.lc-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lc-value-form { display: flex; align-items: flex-end; gap: 9px; margin: 12px 0 14px; }
+.local-controls label { display: block; color: #5c737b; font-size: 12px; }
+.local-controls input { display: block; min-height: 36px; border: 1px solid #b8ccce; border-radius: 5px; padding: 6px 10px; color: #243c45; background: #fff; }
+.lc-value-form input { width: 92px; min-height: 32px; margin-top: 4px; }
+.lc-indicator-track { width: 200px; height: 36px; background: #e9efed; border-radius: 4px; }
+.lc-indicator { height: 36px; min-width: 0; background: #3b7a83; color: #fff; padding-top: 9px; text-align: center; font-size: 12px; font-weight: 650; white-space: nowrap; border-radius: 4px; }
+.lc-readback { margin-top: 10px; font-size: 11px; color: #60777c; }
+.local-controls .lc-hint { font-size: 11px; line-height: 1.55; margin-top: 12px; color: #768a8e; }
+.lc-asset { display: flex; align-items: center; gap: 15px; border-top: 1px solid #e5ece9; margin-top: 12px; padding-top: 8px; }
+.lc-asset img { width: 110px; height: 72px; }
+.lc-asset p { font-size: 11px; margin-top: 4px; }
+.lc-gauge { margin-top: 22px; }
+.lc-gauge .lc-row > span { font-size: 12px; color: #647d83; }
+.lc-gauge strong { font-size: 21px; font-weight: 600; }
+.lc-gauge small { font-size: 11px; font-weight: 400; }
+.lc-gauge-track { height: 6px; background: #e7eeeb; margin-top: 6px; border-radius: 3px; }
+.lc-gauge-fill { height: 6px; background: #71a39b; border-radius: 3px; }
+.lc-footer { height: 32px; flex: none; display: flex; justify-content: space-between; align-items: center; padding: 0 25px; border-top: 1px solid #d5dfdf; color: #71858a; background: #fff; font-size: 11px; }
+.lc-details > p { margin-top: 9px; font-size: 12px; }
+.lc-diagnostics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 25px; margin: 16px 0 6px; }
+.lc-diagnostics > div { border-bottom: 1px solid #e0e9e6; padding-bottom: 6px; }
+.lc-diagnostics dt { font-size: 11px; color: #6c858a; }
+.lc-diagnostics dd { margin: 1px 0 0; font-size: 16px; font-weight: 600; }
+.lc-dialog { position: fixed; inset: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; width: 452px; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); padding: 0; border: 1px solid #afc4c7; border-radius: 10px; color: #243c45; background: #fff; box-shadow: 0 22px 80px #183c4555; }
+.lc-dialog::backdrop { background: #193a4966; }
+.lc-dialog-drag { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #eaf2ef; border-bottom: 1px solid #d5e0dc; cursor: grab; touch-action: none; user-select: none; }
+.lc-dialog-drag:active { cursor: grabbing; }
+.lc-dialog-content { padding: 20px; }
+.lc-dialog-content > p { margin-bottom: 16px; font-size: 12px; }
+.lc-dialog-content input { width: 100%; margin: 4px 0 12px; }
+.lc-dialog-actions { display: flex; gap: 8px; margin-top: 17px; }
+.lc-login-result { min-height: 38px; background: #f0f5f3; border-radius: 5px; padding: 10px; margin-top: 16px !important; }
+.lc-confirm { width: 380px; }
+.lc-confirm h2 { margin-top: 6px; margin-bottom: 10px; }

@@ -1,0 +1,6 @@
+<Project>
+  <!-- The external provider and its samples declare their own package versions. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

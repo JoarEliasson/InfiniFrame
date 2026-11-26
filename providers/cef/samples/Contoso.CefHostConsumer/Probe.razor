@@ -1,0 +1,138 @@
+@page "/"
+@page "/screen"
+@implements IAsyncDisposable
+@inject ProbeState State
+@inject LifetimeProducer Producer
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<h1>Native Blazor workload (external CEF provider)</h1>
+<p>Application service: <span id="identity">@State.Identity</span></p>
+<p>Page instance: <span id="page-instance">@_page</span></p>
+<p>Native .NET event count: <span id="counter">@State.NativeEvents</span></p>
+<button id="increment" @onclick="Increment">Run .NET handler</button>
+<input id="probe-input" @bind="_input" />
+<span id="input-value">@_input</span>
+<p>Component timer (.NET-originated): <span id="managed-ticks">@State.Ticks</span></p>
+<p>Application-lifetime producer: <span id="producer-ticks">@_producerTicks</span>, started by page <span id="producer-origin">@Producer.StartedByPage</span></p>
+<p>Late update: <span id="late-stamp">@_lateStamp</span></p>
+<button id="delayed-stamp" @onclick="ScheduleDelayedUpdate">Schedule a delayed update from this page</button>
+<p>Offline module, binary, scoped CSS and package assets: <span id="assets">@_assets</span></p>
+<button id="reload" @onclick="Reload">Full document reload</button>
+
+@code {
+    private readonly CancellationTokenSource _stop = new();
+    private Task _timer = Task.CompletedTask;
+    private IJSObjectReference? _module;
+    private string _input = "";
+    private string _assets = "WAIT";
+    private string _lateStamp = "none";
+    private long _producerTicks;
+    private int _page;
+
+    protected override void OnInitialized() {
+        _page = Interlocked.Increment(ref State.ComponentsOpened);
+        // The first page starts the application-lifetime producer; its timer keeps this page's execution context.
+        Producer.EnsureStarted(_page);
+        Producer.Ticked += OnProducerTick;
+        _timer = Tick();
+    }
+
+    private void OnProducerTick(long value) => _ = InvokeAsync(() => {
+        _producerTicks = value;
+        StateHasChanged();
+    });
+
+    private void Increment() {
+        Interlocked.Increment(ref State.NativeEvents);
+        State.HandlerThreads.AddOrUpdate(Environment.CurrentManagedThreadId, 1, static (_, n) => n + 1);
+    }
+
+    private void Reload() => Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+
+    // A delayed callback that belongs to THIS page: after the page is replaced it must not reach the next page.
+    private void ScheduleDelayedUpdate() {
+        int page = _page;
+        // Two more late actions, each independent of the sequence below (whose timing they leave unchanged):
+        // the same page's late JS call made on Blazor's dispatcher (a refusal reaches such a caller; a 2 s token ends it
+        // otherwise), and its late navigation through its own captured NavigationManager.
+        _ = Task.Run(async () => {
+            await Task.Delay(State.DelayedMilliseconds);
+            Interlocked.Increment(ref State.DelayedDispatcherJsAttempts);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            try {
+                await InvokeAsync(async () => await JS.InvokeVoidAsync("probeStamp", timeout.Token, $"page-{page}-late-js-on-dispatcher"));
+                State.DelayedOutcomes.Enqueue($"js on dispatcher page {page}: completed");
+            }
+            catch (Exception exception) {
+                State.DelayedOutcomes.Enqueue($"js on dispatcher page {page}: {exception.GetType().Name}");
+            }
+        });
+        _ = Task.Run(async () => {
+            await Task.Delay(State.DelayedMilliseconds);
+            Interlocked.Increment(ref State.DelayedNavigationAttempts);
+            try {
+                await InvokeAsync(() => Navigation.NavigateTo($"/screen?late-navigation-from-page={page}"));
+                State.DelayedOutcomes.Enqueue($"navigation page {page}: returned");
+            }
+            catch (Exception exception) {
+                State.DelayedOutcomes.Enqueue($"navigation page {page}: {exception.GetType().Name}");
+            }
+        });
+        _ = Task.Run(async () => {
+            await Task.Delay(State.DelayedMilliseconds);
+            Interlocked.Increment(ref State.DelayedRenderAttempts);
+            try {
+                await InvokeAsync(() => {
+                    _lateStamp = $"page-{page}-late-render";
+                    StateHasChanged();
+                });
+                Interlocked.Increment(ref State.DelayedRenderCompleted);
+                State.DelayedOutcomes.Enqueue($"render page {page}: completed");
+            }
+            catch (Exception exception) {
+                State.DelayedOutcomes.Enqueue($"render page {page}: {exception.GetType().Name}");
+            }
+            Interlocked.Increment(ref State.DelayedJsAttempts);
+            try {
+                await JS.InvokeVoidAsync("probeStamp", $"page-{page}-late-js");
+                Interlocked.Increment(ref State.DelayedJsCompleted);
+                State.DelayedOutcomes.Enqueue($"js page {page}: completed");
+            }
+            catch (Exception exception) {
+                State.DelayedOutcomes.Enqueue($"js page {page}: {exception.GetType().Name}");
+            }
+        });
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (!firstRender) return;
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", "./probe.js");
+        _assets = await _module.InvokeAsync<string>("verifyAssets");
+        StateHasChanged();
+    }
+
+    private async Task Tick() {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(250));
+        try {
+            while (await timer.WaitForNextTickAsync(_stop.Token)) {
+                Interlocked.Increment(ref State.Ticks);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) when (_stop.IsCancellationRequested) {}
+    }
+
+    public async ValueTask DisposeAsync() {
+        Producer.Ticked -= OnProducerTick;
+        await _stop.CancelAsync();
+        await _timer;
+        if (_module is not null) {
+            try { await _module.DisposeAsync(); }
+            catch (JSDisconnectedException) {}
+            catch (Exception exception) when (exception is TaskCanceledException or ObjectDisposedException or InvalidOperationException) {}
+        }
+        _stop.Dispose();
+        Interlocked.Increment(ref State.ComponentsDisposed);
+    }
+}

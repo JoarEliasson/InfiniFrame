@@ -1,0 +1,12 @@
+<div class="lc-gauge">
+    <div class="lc-row"><span>@Label</span><strong>@Value <small>@Unit</small></strong></div>
+    <div class="lc-gauge-track" role="meter" aria-label="@($"Fake {Label}")" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@Value">
+        <div class="lc-gauge-fill" style="@($"width: {Value}%")"></div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public int Value { get; set; }
+    [Parameter] public string Unit { get; set; } = "";
+}

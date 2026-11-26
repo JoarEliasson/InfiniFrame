@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Contoso.InfiniFrame.CefHost/Contoso.InfiniFrame.CefHost.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Contoso.InfiniFrame.CefHost.Tests/Contoso.InfiniFrame.CefHost.Tests.csproj" />
+  </Folder>
+</Solution>

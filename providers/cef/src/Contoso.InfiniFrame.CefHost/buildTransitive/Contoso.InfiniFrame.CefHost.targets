@@ -1,0 +1,14 @@
+<Project>
+    <!-- This managed-only package never supplies, copies or grants permissions to a CEF runtime.
+         Select the full installed runtime through CefHostOptions.PayloadDirectory. Installer ownership
+         includes native files, resources, executable permissions and sandbox ACLs. -->
+    <PropertyGroup>
+        <ContosoCefHostDeployPayload Condition="'$(ContosoCefHostDeployPayload)' == ''">false</ContosoCefHostDeployPayload>
+    </PropertyGroup>
+    <Target Name="ValidateContosoCefHostDeployment" BeforeTargets="PrepareForBuild;Publish;GenerateNuspec">
+        <Error Condition="'$(ContosoCefHostDeployPayload)' != 'false'"
+               Text="Contoso.InfiniFrame.CefHost is managed-only. ContosoCefHostDeployPayload must be false or omitted; select a separately installed full runtime with CefHostOptions.PayloadDirectory." />
+        <Error Condition="'$(ContosoCefHostPayloadWinX64)' != '' or '$(ContosoCefHostPayloadLinuxX64)' != '' or '$(ContosoCefHostPayloadLinuxArm64)' != ''"
+               Text="Contoso.InfiniFrame.CefHost no longer packs or copies native payloads. Remove ContosoCefHostPayloadWinX64 / ContosoCefHostPayloadLinuxX64 / ContosoCefHostPayloadLinuxArm64 and install the full runtime separately." />
+    </Target>
+</Project>

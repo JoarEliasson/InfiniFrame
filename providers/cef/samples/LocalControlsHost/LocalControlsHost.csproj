@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="InfiniLore.InfiniFrame.Application" Version="$(InfiniFrameVersion)" />
+    <PackageReference Include="InfiniLore.InfiniFrame.BlazorWebView" Version="$(InfiniFrameVersion)" />
+    <PackageReference Include="Contoso.InfiniFrame.CefHost" Version="$(ContosoCefHostVersion)" />
+    <ProjectReference Include="../LocalControlsUi/LocalControlsUi.csproj" />
+    <Content Update="wwwroot/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Compile Remove="checks/**/*.cs" />
+    <Content Remove="checks/**/*" />
+    <None Update="README.md;ACCEPTANCE.md" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Import Project="LocalControlsAssets.targets" />
+</Project>

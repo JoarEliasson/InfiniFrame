@@ -1,0 +1,16 @@
+<Project>
+  <!-- No SDK, package restore, project build or runtime. Supply the two real, already resolved WebView files
+       explicitly for this fixture. Production gets StaticWebAsset items from the Razor/WebView SDK pipeline. -->
+  <Target Name="ResolveStaticWebAssetsInputs" />
+  <ItemGroup Condition="'$(WebViewBootstrapDirectory)' != ''">
+    <StaticWebAsset Include="$(WebViewBootstrapDirectory)/blazor.webview.js">
+      <AssetRole>Primary</AssetRole><AssetKind>All</AssetKind><BasePath>/</BasePath>
+      <RelativePath>_framework/blazor.webview#[.{fingerprint}]?.js</RelativePath>
+    </StaticWebAsset>
+    <StaticWebAsset Include="$(WebViewBootstrapDirectory)/blazor.modules.json">
+      <AssetRole>Primary</AssetRole><AssetKind>All</AssetKind><BasePath>/</BasePath>
+      <RelativePath>_framework/blazor.modules#[.{fingerprint}]?.json</RelativePath>
+    </StaticWebAsset>
+  </ItemGroup>
+  <Import Project="../LocalControlsAssets.targets" />
+</Project>

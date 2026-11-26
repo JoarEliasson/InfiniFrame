@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Supply a runtime nuspec via -p:NuspecFile when packaging a verified archive. -->
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <NoWarn>$(NoWarn);NU5100;NU5128;NU5123</NoWarn>
+        <EnableDefaultItems>false</EnableDefaultItems>
+    </PropertyGroup>
+</Project>

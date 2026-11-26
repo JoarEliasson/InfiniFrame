@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Browser-free reproduction against InfiniFrame's packages only: PackageReference, no ProjectReference, no
+         reflection into InfiniFrame, no InternalsVisibleTo. Components are plain C#. -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <AssemblyName>Contoso.CoreGapRepro</AssemblyName>
+        <RootNamespace>Contoso.CoreGapRepro</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="InfiniLore.InfiniFrame.Application" Version="$(InfiniFrameVersion)" />
+        <PackageReference Include="InfiniLore.InfiniFrame.BlazorWebView" Version="$(InfiniFrameVersion)" />
+    </ItemGroup>
+    <ItemGroup>
+        <!-- Recorded in the report. -->
+        <AssemblyMetadata Include="InfiniFrameVersion" Value="$(InfiniFrameVersion)" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 155 102" fill="none">
+  <title>Circulation module</title>
+  <desc>Original sample illustration of a reservoir, pump and return line.</desc>
+  <path d="M48 22H126V74H106M65 74H48" stroke="#739790" stroke-width="5" stroke-linejoin="round"/>
+  <rect x="12" y="12" width="40" height="76" rx="9" fill="#e6f0eb" stroke="#668d87" stroke-width="2"/>
+  <path d="M14 48Q23 43 32 48T50 48V78Q50 86 42 86H22Q14 86 14 78Z" fill="#a8c8bd"/>
+  <path d="M21 27H42M21 34H35" stroke="#799b92" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="85" cy="74" r="20" fill="#eff5f2" stroke="#4d7f7b" stroke-width="2"/>
+  <path d="M79 62L97 74L79 86Z" fill="#4d7f7b"/>
+  <circle cx="126" cy="22" r="6" fill="#d8e7e0" stroke="#668d87" stroke-width="2"/>
+  <path d="M24 92H45M73 97H97" stroke="#a1b8b1" stroke-width="3" stroke-linecap="round"/>
+</svg>

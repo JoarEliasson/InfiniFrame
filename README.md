@@ -16,6 +16,10 @@ Supports **Windows** (WebView2), **Linux** (WebKit2GTK), and **macOS** (WKWebVie
 ![TypeScript Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/InfiniLore/InfiniFrame/refs/heads/core/badges/ts-coverage.json)
 ![Python Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/InfiniLore/InfiniFrame/refs/heads/core/badges/python-coverage.json)
 
+## Build the CEF provider from this checkout
+
+Run `python scripts/build-cef-integration.py --test` to build the framework, the CEF provider and the LocalControlsHost reference application together. See the [build guide](providers/cef/BUILD.md) for prerequisites and how to run the application.
+
 ## Packages
 
 | Description                                          | Package                                                                                                                                                                                         |

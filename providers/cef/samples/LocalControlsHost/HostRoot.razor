@@ -1,0 +1,11 @@
+@namespace LocalControlsHost
+@using Microsoft.AspNetCore.Components.Web
+<ErrorBoundary>
+    <ChildContent><LocalControlsUi.App /></ChildContent>
+    <ErrorContent>
+        <section class="host-error" role="alert">
+            <h1>The local controls component failed</h1>
+            <p>See the host console for the exception. Check service registration and local asset loading before restarting.</p>
+        </section>
+    </ErrorContent>
+</ErrorBoundary>

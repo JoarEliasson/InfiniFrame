@@ -1,0 +1,40 @@
+{
+  "cefVersion": "156.0.8+g426920c+chromium-156.0.8078.48",
+  "chromiumVersion": "156.0.8078.48",
+  "channel": "stable",
+  "origin": "https://cef-builds.spotifycdn.com/",
+  "runtime": {
+    "name": "InfiniFrame CEF runtime",
+    "revision": 7
+  },
+  "distributions": {
+    "win-x64": {
+      "platform": "windows64",
+      "type": "standard",
+      "sha1": "242baf0cc97839495b4a34fe73acab0f3516eda2",
+      "sha256": "4b18dd830dee56c63b855c6c0af77ac0c4128c4d5f5691ae0183b6e564697bea",
+      "bytes": 367169844
+    },
+    "win-arm64": {
+      "platform": "windowsarm64",
+      "type": "standard",
+      "sha1": "9fa979fef05eaab5ad8ca60e157a66ad796ef9c4",
+      "sha256": "c49dfc5d81a49eeb757f2019d0846874b5e63aeaf7c086eff822a179f70c6448",
+      "bytes": 343692526
+    },
+    "linux-x64": {
+      "platform": "linux64",
+      "type": "standard",
+      "sha1": "2f1de41bd293ec21e516088ece756f83efaf60b6",
+      "sha256": "aeab471976d0d452b8be7f64ba68b6abe16b4fe542dcf4b78c5fb2a9a20b57f3",
+      "bytes": 695585986
+    },
+    "linux-arm64": {
+      "platform": "linuxarm64",
+      "type": "minimal",
+      "sha1": "256d4f49799d53fc80184b4cb2328b3487fdb740",
+      "sha256": "b7168d92e266c72839cd8bf9fc6d4c439edbd7dc5c12cd7e5c4c3fd88a954876",
+      "bytes": 431240685
+    }
+  }
+}

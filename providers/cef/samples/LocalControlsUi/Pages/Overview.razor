@@ -1,0 +1,41 @@
+@page "/"
+
+<div class="lc-heading"><div><h1>Module A</h1><p>Adjust the value and inspect the backend readback.</p></div><a class="lc-button" href="details">Inspect details →</a></div>
+<div class="lc-workspace">
+    <section class="lc-panel" aria-labelledby="lc-control-title">
+        <div class="lc-row"><h2 id="lc-control-title">Indicator control</h2><span class="lc-badge">0–100</span></div>
+        <form class="lc-value-form" @onsubmit="Apply" @onsubmit:preventDefault>
+            <label for="lc-value">Edit value<input id="lc-value" type="number" min="0" max="100" step="1" required @bind="_editValue" /></label>
+            <button type="submit" class="lc-primary">Apply</button>
+            <button type="button" @onclick="Step">Step to 75</button>
+        </form>
+        <div class="lc-indicator-track" aria-label="Indicator track, 200 pixels">
+            <div id="lc-indicator" class="lc-indicator" style="@IndicatorStyle" role="meter" aria-label="Backend value" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@View.Snapshot.Value">@(View.Snapshot.Value * 2) px</div>
+        </div>
+        <div class="lc-row lc-readback"><span>Backend readback <strong id="lc-readback">@View.Snapshot.Value</strong></span><span>Value × 2 = <strong>@(View.Snapshot.Value * 2) px</strong></span></div>
+        <div class="lc-asset"><img src="_content/LocalControlsUi/module.svg" width="155" height="102" alt="Original illustration of a tank, pump and circulation pipe" /><div><h3>Circulation module</h3><p>Original SVG · local asset<br />Illustrative state: ready</p></div></div>
+    </section>
+    <aside class="lc-panel lc-live" aria-labelledby="lc-live-title">
+        <div class="lc-row"><h2 id="lc-live-title">Live sample</h2><span class="lc-badge">FAKE</span></div>
+        <SampleGauge Label="Temperature" Value="View.Snapshot.Temperature" Unit="°C" />
+        <SampleGauge Label="Flow" Value="View.Snapshot.Flow" Unit="%" />
+        <SampleGauge Label="Load" Value="View.Snapshot.Load" Unit="%" />
+        <p class="lc-hint">Approx. 100 ms heartbeat · sequence @View.Snapshot.Heartbeat<br />Only Apply or Step changes the setpoint.</p>
+    </aside>
+</div>
+
+@code {
+    [CascadingParameter] public DocumentView View { get; set; } = default!;
+    private int _editValue;
+    private string IndicatorStyle => $"width: {View.Snapshot.Value * 2}px";
+    protected override void OnInitialized() => _editValue = View.Snapshot.Value;
+    private void Apply()
+    {
+        if (_editValue is >= 0 and <= 100) View.Session.WriteValue(_editValue);
+    }
+    private void Step()
+    {
+        _editValue = 75;
+        View.Session.WriteValue(75);
+    }
+}

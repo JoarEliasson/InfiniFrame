@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- Regression tests for the CEF companion host provider. The provider's sources are compiled into this test
+         assembly (no ProjectReference, no InternalsVisibleTo), so the provider project's own obj/bin are never shared
+         with a concurrent provider build or pack. InfiniFrame's contract comes only from its Shared package. -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <AssemblyName>Contoso.InfiniFrame.CefHost.Tests</AssemblyName>
+        <RootNamespace>Contoso.InfiniFrame.CefHost.Tests</RootNamespace>
+        <!-- Mirrors the provider project. -->
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Deterministic>true</Deterministic>
+        <!-- Documentation is enforced by the provider's own build; test members need none. -->
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="..\..\src\Contoso.InfiniFrame.CefHost\**\*.cs"
+                 Exclude="..\..\src\Contoso.InfiniFrame.CefHost\obj\**;..\..\src\Contoso.InfiniFrame.CefHost\bin\**"
+                 LinkBase="ProviderSource" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="InfiniLore.InfiniFrame.Shared" Version="$(InfiniFrameSharedVersion)" />
+        <PackageReference Include="TUnit" Version="1.68.17" />
+    </ItemGroup>
+    <ItemGroup>
+        <None Include="fake_companion.py" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+</Project>

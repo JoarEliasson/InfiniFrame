@@ -1,0 +1,28 @@
+# Interactive runtime checks
+
+Use the managed packages and native runtime for the checkout under test. Record the commit, package versions, runtime manifest, RID, SDK, OS and display scale with each run.
+
+## Deployment and startup
+
+1. Restore, build and publish only this host with the local build feed. Retain the restore/build logs and resolved package graph. Confirm both InfiniFrame package versions agree and the provider is the provider built from this checkout.
+2. Verify the ordinary build and publish web roots contain all six physical host/RCL assets plus `_framework/blazor.webview.js` and `_framework/blazor.modules.json`, with bytes matching the resolved declared WebView inputs. The helper's `--web-roots` digest mode checks this using only physical files; it does not establish MIME or browser loading. Copy the complete build output to a new directory and launch from that directory with a different working directory. Repeat from a fresh publish output. Make source/cache manifest content roots inaccessible to the tested process, or omit development `*.staticwebassets.runtime.json` files while making the disposable test copy. Never remove/rename original source files or caches to simulate relocation. The framework's physical web-root fallback must work in the actual browser independently of the development manifest.
+3. Use explicit `--payload` pointing to the verified complete shared installed runtime (or an app-local runtime supplied externally). Confirm the managed provider package/build/publish contains no native CEF; the framework's own native bridge is separate. Record installer ownership/permissions independently. Try a missing/invalid payload separately: retain stderr and prove nonzero exit without an engine fallback. Confirm `--help` needs no native runtime and malformed CLI arguments fail.
+4. Confirm exactly one native window titled Local controls example at x=0/y=0, chromeless, non-resizable, with 1024 by 600 content pixels and DPR 1. Capture actual geometry/clipping/font metrics and verify pinch zoom and overscroll behavior on target hardware. Programmatic zoom is not a substitute for hardware gestures.
+5. Confirm the original SVG, external host/RCL stylesheets and local ES module load from `app://localhost` with correct content types (`text/css`, JavaScript, `image/svg+xml`), and no external requests/bootstrap/component errors. Retain host console and runtime logs. Keep DevTools disabled; use the public window SDK evaluation API or a separate qualification driver for browser inspection.
+
+## UI, routes and actual document replacement
+
+1. Check actual computed `#lc-indicator` width: initial readback 50 = 100 px; Step to 75 = 150 px; edit 23 and Apply = 46 px/readback 23; then exercise values 0 and 100. Observe heartbeat/gauge changes while the setpoint stays fixed. DOM text alone does not establish computed width under CSP.
+2. Navigate Details and Back through the real Blazor router. The root/session ID should remain the same; the edit field should initialize from the retained backend value.
+3. Open Local sign-in. Exercise Tab/Shift+Tab containment, blocked background input, Escape, focus restoration, valid `operator` / `demo`, invalid credentials and dismissal during the delayed response. Rapidly reopen while initialization/login is pending. Do not mark cancellation qualified until the independent RCL race fix has been integrated and tested.
+4. Drag the dialog across its header/bounds, release outside the header and exercise pointer cancellation/capture loss. Open nested confirmation, check top-dialog-only focus and Escape returning to the parent. Close/reopen the parent and verify opener focus restores. These are document dialogs; no secondary native window should appear.
+5. Set a non-default value. Use Reload document repeatedly (actual `location.reload()`), including during an open dialog/delayed login. After each settled replacement, verify value retention, a new session ID, one active RCL session/subscription, and balanced retired totals. Record framework/host diagnostics independently. RCL counters describe only this fake backend and cannot prove native process, framework dispatcher or DI-scope cleanup.
+
+## Close, faults and cleanup
+
+1. Test last-native-window close and Ctrl+C in separate fresh runs, including Ctrl+C during startup. Test an application-stop request through a qualification driver using the public SDK. Await process completion; record exit code and printed provider shutdown diagnostics.
+2. Verify the exact provider `RunDirectory` was removed. On Windows, inspect provider job/process tracking and prove zero owned processes remain without escalation. Linux requires an independent descendant-process check; a successful companion exit alone is insufficient.
+3. Inject a companion failure from a separate qualification driver. Confirm stderr retains the failure, process exits unsuccessfully and provider teardown runs. Record any framework disposal failures separately; the RCL counters do not qualify this path.
+4. Exercise a failing component/bootstrap dependency in a disposable host-only fixture. Confirm ErrorBoundary/console forwarding keeps exception details available and does not launch a native dialog. A visible ErrorBoundary and exit code 0 after manually closing it do not constitute a passing functional run.
+
+Strict-default inline-style rejection, forbidden `<style>`-element fixtures, permission/external-navigation refusals, browser `window.open`, stress workloads and hardware gesture matrices are later integration cases. Do not relax this host's policy or mark them passed from these offline checks.

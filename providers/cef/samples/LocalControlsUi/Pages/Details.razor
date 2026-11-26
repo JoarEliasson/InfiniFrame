@@ -1,0 +1,22 @@
+@page "/details"
+
+<div class="lc-heading"><div><h1>Module details</h1><p>Real router navigation within the current document.</p></div><a class="lc-button" href="">← Back to overview</a></div>
+<section class="lc-panel lc-details">
+    <h2>RCL-owned lifecycle diagnostics</h2>
+    <p>These are counters from this sample's fake .NET backend. They do not prove framework dispatcher, host scope, native process or window cleanup.</p>
+    <dl class="lc-diagnostics">
+        <div><dt>Backend value</dt><dd id="lc-details-value">@View.Snapshot.Value</dd></div>
+        <div><dt>Current document session</dt><dd>@View.Session.Id</dd></div>
+        <div><dt>Active backend instances here</dt><dd>@View.Diagnostics.ActiveBackends</dd></div>
+        <div><dt>Active RCL sessions</dt><dd>@View.Diagnostics.ActiveSessions</dd></div>
+        <div><dt>Created / retired sessions</dt><dd>@View.Diagnostics.CreatedSessions / @View.Diagnostics.RetiredSessions</dd></div>
+        <div><dt>Active RCL subscriptions</dt><dd>@View.Diagnostics.ActiveSubscriptions</dd></div>
+        <div><dt>Created / retired subscriptions</dt><dd>@View.Diagnostics.CreatedSubscriptions / @View.Diagnostics.RetiredSubscriptions</dd></div>
+        <div><dt>Heartbeat sequence</dt><dd>@View.Snapshot.Heartbeat</dd></div>
+    </dl>
+    <p class="lc-hint">Reload document uses location.reload(). Retention requires the later host to keep the application service provider alive and dispose the previous root component.</p>
+</section>
+
+@code {
+    [CascadingParameter] public DocumentView View { get; set; } = default!;
+}

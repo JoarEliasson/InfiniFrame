@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- External InfiniFrame host provider. Uses InfiniFrame's host contract only through a PackageReference to
+         InfiniLore.InfiniFrame.Shared: no ProjectReference to InfiniFrame, no InternalsVisibleTo from it, no reflection
+         over InfiniFrame, and no copied InfiniFrame implementation. -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <AssemblyName>Contoso.InfiniFrame.CefHost</AssemblyName>
+        <RootNamespace>Contoso.InfiniFrame.CefHost</RootNamespace>
+        <PackageId>Contoso.InfiniFrame.CefHost</PackageId>
+        <Version>$(ContosoCefHostVersion)</Version>
+        <Authors>JoarEliasson</Authors>
+        <Description>Managed CEF companion host adapter for an independently installed full runtime (preview).</Description>
+        <RepositoryUrl>https://github.com/JoarEliasson/InfiniFrame</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IsPackable>true</IsPackable>
+        <Deterministic>true</Deterministic>
+        <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="InfiniLore.InfiniFrame.Shared" Version="$(InfiniFrameSharedVersion)" />
+    </ItemGroup>
+    <!-- No friend grants in either direction: nothing in InfiniFrame grants this provider access, and the provider's own
+         tests compile these sources into their test assembly instead of receiving InternalsVisibleTo. -->
+    <ItemGroup>
+        <None Include="buildTransitive\Contoso.InfiniFrame.CefHost.targets" Pack="true" PackagePath="buildTransitive\Contoso.InfiniFrame.CefHost.targets" />
+    </ItemGroup>
+    <!-- The same guard applies to packing this project and consuming its thin package. -->
+    <Import Project="buildTransitive\Contoso.InfiniFrame.CefHost.targets" />
+</Project>

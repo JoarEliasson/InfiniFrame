@@ -1,0 +1,55 @@
+<Project>
+  <!-- Keep a complete physical web root in both outputs. The framework can consume SDK manifests during
+       development, but a relocated output must not require any source-tree manifest content root. -->
+  <ItemGroup>
+    <_LocalControlsHostAsset Include="$(MSBuildThisFileDirectory)wwwroot/**/*">
+      <LocalControlsPath>%(RecursiveDir)%(Filename)%(Extension)</LocalControlsPath>
+    </_LocalControlsHostAsset>
+    <_LocalControlsRclAsset Include="$(MSBuildThisFileDirectory)../LocalControlsUi/wwwroot/**/*">
+      <LocalControlsPath>_content/LocalControlsUi/%(RecursiveDir)%(Filename)%(Extension)</LocalControlsPath>
+    </_LocalControlsRclAsset>
+  </ItemGroup>
+  <Target Name="ValidateLocalControlsAssets">
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)wwwroot/index.html')"
+           Text="The LocalControlsHost host document is missing." />
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)../LocalControlsUi/wwwroot/local-controls.css') or !Exists('$(MSBuildThisFileDirectory)../LocalControlsUi/wwwroot/local-controls.js') or !Exists('$(MSBuildThisFileDirectory)../LocalControlsUi/wwwroot/module.svg')"
+           Text="LocalControlsUi must supply its local stylesheet, ES module and SVG." />
+  </Target>
+  <!-- WebView declares these as SDK static assets with CopyToOutputDirectory=Never. A native build output
+       also needs physical copies: its development manifest otherwise points back into the NuGet cache.
+       Read resolved assets rather than constructing a package path. The SDK may fingerprint RelativePath;
+       the host document deliberately uses the stable bootstrap route, and its loader uses the module route. -->
+  <Target Name="ResolveLocalControlsWebViewAssets" DependsOnTargets="ResolveStaticWebAssetsInputs">
+    <ItemGroup>
+      <_LocalControlsWebViewBootstrap Include="@(StaticWebAsset)"
+          Condition="'%(StaticWebAsset.AssetRole)' == 'Primary' and '%(StaticWebAsset.AssetKind)' != 'Publish' and '%(StaticWebAsset.BasePath)' == '/' and '%(StaticWebAsset.Filename)%(StaticWebAsset.Extension)' == 'blazor.webview.js' and $([System.String]::Copy('%(StaticWebAsset.RelativePath)').StartsWith('_framework/'))" />
+      <_LocalControlsWebViewModules Include="@(StaticWebAsset)"
+          Condition="'%(StaticWebAsset.AssetRole)' == 'Primary' and '%(StaticWebAsset.AssetKind)' != 'Publish' and '%(StaticWebAsset.BasePath)' == '/' and $([System.String]::Copy('%(StaticWebAsset.RelativePath)').StartsWith('_framework/blazor.modules'))" />
+    </ItemGroup>
+    <Error Condition="'@(_LocalControlsWebViewBootstrap->Count())' != '1'"
+           Text="LocalControlsHost requires exactly one resolved primary Blazor WebView bootstrap static asset." />
+    <Error Condition="'@(_LocalControlsWebViewModules->Count())' != '1'"
+           Text="LocalControlsHost requires exactly one resolved primary Blazor module manifest static asset." />
+    <Error Condition="!Exists('%(_LocalControlsWebViewBootstrap.Identity)')"
+           Text="The resolved Blazor WebView bootstrap static asset is missing: %(_LocalControlsWebViewBootstrap.Identity)" />
+    <Error Condition="!Exists('%(_LocalControlsWebViewModules.Identity)')"
+           Text="The resolved Blazor module manifest static asset is missing: %(_LocalControlsWebViewModules.Identity)" />
+  </Target>
+  <Target Name="CopyLocalControlsAssetsToBuildOutput" AfterTargets="CopyFilesToOutputDirectory"
+          DependsOnTargets="ValidateLocalControlsAssets;ResolveLocalControlsWebViewAssets">
+    <Error Condition="'$(TargetDir)' == ''" Text="TargetDir is required to copy local controls assets." />
+    <Copy SourceFiles="@(_LocalControlsHostAsset)" DestinationFiles="@(_LocalControlsHostAsset->'$(TargetDir)wwwroot/%(LocalControlsPath)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LocalControlsRclAsset)" DestinationFiles="@(_LocalControlsRclAsset->'$(TargetDir)wwwroot/%(LocalControlsPath)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LocalControlsWebViewBootstrap)" DestinationFiles="$(TargetDir)wwwroot/_framework/blazor.webview.js" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LocalControlsWebViewModules)" DestinationFiles="$(TargetDir)wwwroot/_framework/blazor.modules.json" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <FileWrites Include="$(TargetDir)wwwroot/_framework/blazor.webview.js;$(TargetDir)wwwroot/_framework/blazor.modules.json" />
+    </ItemGroup>
+  </Target>
+  <Target Name="CopyLocalControlsAssetsToPublishOutput" AfterTargets="Publish"
+          DependsOnTargets="ValidateLocalControlsAssets">
+    <Error Condition="'$(PublishDir)' == ''" Text="PublishDir is required to copy local controls assets." />
+    <Copy SourceFiles="@(_LocalControlsHostAsset)" DestinationFiles="@(_LocalControlsHostAsset->'$(PublishDir)wwwroot/%(LocalControlsPath)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LocalControlsRclAsset)" DestinationFiles="@(_LocalControlsRclAsset->'$(PublishDir)wwwroot/%(LocalControlsPath)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -1,0 +1,89 @@
+@namespace LocalControlsUi
+@implements IAsyncDisposable
+@inject FakeControlBackend Backend
+@inject IJSRuntime JS
+@inject Microsoft.Extensions.Logging.ILogger<App> Logger
+
+<div class="local-controls" data-session-id="@_session.Id">
+    <header class="lc-header">
+        <div><div class="lc-eyebrow">LOCAL CONTROLS · BLAZOR HYBRID</div><strong>Process overview</strong></div>
+        <div class="lc-header-note"><span class="lc-badge">FAKE BACKEND</span><span>Logical surface 1024 × 600</span></div>
+    </header>
+    <div class="lc-body">
+        <nav class="lc-nav" aria-label="Local controls navigation">
+            <NavLink href="" Match="NavLinkMatch.All">Overview</NavLink>
+            <NavLink href="details">Details</NavLink>
+            <button @onclick="OpenDialogAsync">Local sign-in</button>
+            <button @onclick="ReloadAsync">Reload document</button>
+            <div class="lc-nav-note">Sample data<br />No device connected</div>
+        </nav>
+        <main class="lc-main" id="lc-main">
+            <CascadingValue Value="_view">
+                <Router AppAssembly="@typeof(App).Assembly">
+                    <Found Context="routeData"><RouteView RouteData="routeData" /></Found>
+                    <NotFound><h1>Page not found</h1><a href="">Back to overview</a></NotFound>
+                </Router>
+            </CascadingValue>
+        </main>
+    </div>
+    <footer class="lc-footer">
+        <span>app://localhost · local sample</span>
+        <span>RCL session @_session.Id · heartbeat @_view.Snapshot.Heartbeat · value @_view.Snapshot.Value</span>
+    </footer>
+    <ControlDialog @ref="_dialog" />
+</div>
+
+@code {
+    private readonly CancellationTokenSource _stop = new();
+    private DocumentSession _session = default!;
+    private ControlSubscription? _subscription;
+    private DocumentView _view = default!;
+    private ControlDialog? _dialog;
+    private Task? _binding;
+    private bool _disposed;
+
+    protected override void OnInitialized()
+    {
+        _session = Backend.OpenSession();
+        _subscription = _session.Subscribe();
+        _view = new(_session, Backend.Read(), Backend.Diagnostics);
+        _binding = BindAsync(_subscription);
+    }
+
+    private async Task BindAsync(ControlSubscription subscription)
+    {
+        try
+        {
+            await foreach (var snapshot in subscription.ReadAllAsync(_stop.Token))
+            {
+                await InvokeAsync(() =>
+                {
+                    if (_disposed) return;
+                    _view = new(_session, snapshot, Backend.Diagnostics);
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
+        catch (Exception exception)
+        {
+            // Surface unexpected binding failures to the host's normal Blazor error handling.
+            if (_disposed) Microsoft.Extensions.Logging.LoggerExtensions.LogError(Logger, exception, "Local controls binding failed during disposal.");
+            else await DispatchExceptionAsync(exception);
+        }
+    }
+
+    private Task OpenDialogAsync() => _dialog!.ShowAsync();
+    private async Task ReloadAsync() => await JS.InvokeVoidAsync("location.reload");
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        _stop.Cancel();
+        _subscription?.Dispose();
+        _session.Dispose();
+        if (_binding is not null) await _binding;
+        _stop.Dispose();
+    }
+}
