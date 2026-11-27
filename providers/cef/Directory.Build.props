@@ -3,10 +3,10 @@
          -p:InfiniFrameVersion=<version> or -p:ContosoCefHostVersion=<version>. -->
     <PropertyGroup>
         <!-- Framework packages built from this checkout (see BUILD.md). -->
-        <InfiniFrameVersion Condition="'$(InfiniFrameVersion)' == ''">0.62.1-cefintegration.1</InfiniFrameVersion>
+        <InfiniFrameVersion Condition="'$(InfiniFrameVersion)' == ''">0.62.1-ceffortless.1</InfiniFrameVersion>
         <!-- Keep the provider/tests' host contract 1.1 dependency aligned with all sample framework packages.
              An explicit InfiniFrameSharedVersion override remains available for deliberate compatibility work. -->
         <InfiniFrameSharedVersion Condition="'$(InfiniFrameSharedVersion)' == ''">$(InfiniFrameVersion)</InfiniFrameSharedVersion>
-        <ContosoCefHostVersion Condition="'$(ContosoCefHostVersion)' == ''">0.1.0-cefintegration.1</ContosoCefHostVersion>
+        <ContosoCefHostVersion Condition="'$(ContosoCefHostVersion)' == ''">0.1.0-preview.1</ContosoCefHostVersion>
     </PropertyGroup>
 </Project>

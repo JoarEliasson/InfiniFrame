@@ -11,7 +11,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="InfiniLore.InfiniFrame.Application" Version="$(InfiniFrameVersion)" />
     <PackageReference Include="InfiniLore.InfiniFrame.BlazorWebView" Version="$(InfiniFrameVersion)" />
-    <PackageReference Include="Contoso.InfiniFrame.CefHost" Version="$(ContosoCefHostVersion)" />
+    <PackageReference Include="Ceffortless" Version="[$(ContosoCefHostVersion)]" />
     <ProjectReference Include="../LocalControlsUi/LocalControlsUi.csproj" />
     <Content Update="wwwroot/**/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Compile Remove="checks/**/*.cs" />

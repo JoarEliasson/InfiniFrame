@@ -7,8 +7,8 @@
     </PropertyGroup>
     <Target Name="ValidateContosoCefHostDeployment" BeforeTargets="PrepareForBuild;Publish;GenerateNuspec">
         <Error Condition="'$(ContosoCefHostDeployPayload)' != 'false'"
-               Text="Contoso.InfiniFrame.CefHost is managed-only. ContosoCefHostDeployPayload must be false or omitted; select a separately installed full runtime with CefHostOptions.PayloadDirectory." />
+               Text="Ceffortless is managed-only. ContosoCefHostDeployPayload must be false or omitted; select a separately installed full runtime with CefHostOptions.PayloadDirectory." />
         <Error Condition="'$(ContosoCefHostPayloadWinX64)' != '' or '$(ContosoCefHostPayloadLinuxX64)' != '' or '$(ContosoCefHostPayloadLinuxArm64)' != ''"
-               Text="Contoso.InfiniFrame.CefHost no longer packs or copies native payloads. Remove ContosoCefHostPayloadWinX64 / ContosoCefHostPayloadLinuxX64 / ContosoCefHostPayloadLinuxArm64 and install the full runtime separately." />
+               Text="Ceffortless no longer packs or copies native payloads. Remove ContosoCefHostPayloadWinX64 / ContosoCefHostPayloadLinuxX64 / ContosoCefHostPayloadLinuxArm64 and install the full runtime separately." />
     </Target>
 </Project>

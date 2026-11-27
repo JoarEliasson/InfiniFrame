@@ -1,6 +1,6 @@
-# CEF host provider for InfiniFrame
+# Ceffortless
 
-`Contoso.InfiniFrame.CefHost` connects InfiniFrame applications to Chromium Embedded Framework through the public host contract. The managed package contains the adapter, and the native companion runs in a separate process. Applications select an installed runtime with `CefHostOptions.PayloadDirectory`. The adapter checks the runtime manifest against the host protocol, platform, CEF version and API.
+The `Ceffortless` NuGet package connects InfiniFrame applications to Chromium Embedded Framework through the public host contract. The adapter assembly and C# namespace are `Contoso.InfiniFrame.CefHost`, and the native companion runs in a separate process. Applications select an installed runtime with `CefHostOptions.PayloadDirectory`. The adapter checks the runtime manifest against the host protocol, platform, CEF version and API.
 
 Start with [Build from source](BUILD.md) to build the framework and provider from this checkout. The [samples](samples/README.md) include a Blazor Hybrid application and a browser-free host contract check.
 

@@ -26,7 +26,7 @@ def create_config(work, feed):
     ET.SubElement(sources, "add", key="nuget.org", value="https://api.nuget.org/v3/index.json")
     mapping = ET.SubElement(config, "packageSourceMapping")
     local = ET.SubElement(mapping, "packageSource", key="local")
-    for pattern in ("InfiniLore.InfiniFrame", "InfiniLore.InfiniFrame.*", "Contoso.InfiniFrame.CefHost"):
+    for pattern in ("InfiniLore.InfiniFrame", "InfiniLore.InfiniFrame.*", "Ceffortless"):
         ET.SubElement(local, "package", pattern=pattern)
     ET.SubElement(ET.SubElement(mapping, "packageSource", key="nuget.org"), "package", pattern="*")
     ET.SubElement(ET.SubElement(config, "fallbackPackageFolders"), "clear")

@@ -33,7 +33,7 @@ python scripts/build-cef-integration.py --managed-only --test
 
 This compiles the frontend, all managed framework packages, provider and reference application. It skips native compilation and creates a NativeBridge package without native libraries for managed validation. The desktop run above requires a full build.
 
-The provider consumes the public `InfiniLore.InfiniFrame.Shared` package. The sample consumes the packaged framework and provider just as an application would. The generated NuGet configuration maps framework and provider package IDs to this run's feed, with nuget.org supplying other packages. A dedicated cache lets successive builds reuse the same version numbers while consuming the newly built packages.
+The provider package is `Ceffortless`. Its managed assembly and namespace are `Contoso.InfiniFrame.CefHost`. The provider consumes the public `InfiniLore.InfiniFrame.Shared` package. The sample consumes the packaged framework and provider just as an application would. The generated NuGet configuration maps framework and provider package IDs to this run's feed, with nuget.org supplying other packages. A dedicated cache lets successive builds reuse the same version numbers while consuming the newly built packages.
 
 Version defaults live in [Directory.Build.props](Directory.Build.props). Use `--framework-version` and `--provider-version` to label a local build with different prerelease versions, or `--dotnet` to select a specific installed dotnet executable. See `python scripts/build-cef-integration.py --help` for the options.
 

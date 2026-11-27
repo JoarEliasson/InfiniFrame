@@ -1,6 +1,6 @@
 # Local controls native Blazor Hybrid host
 
-This .NET 10 executable composes `LocalControlsUi.App` with InfiniFrame Application/BlazorWebView and the external `Contoso.InfiniFrame.CefHost` provider through public APIs. The RCL's [integration contract](../LocalControlsUi/README.md) describes its services, local assets and lifecycle. This host starts no ASP.NET server, SignalR connection or WebAssembly runtime.
+This .NET 10 executable composes `LocalControlsUi.App` with InfiniFrame Application/BlazorWebView and the external `Ceffortless` provider package through public APIs. The RCL's [integration contract](../LocalControlsUi/README.md) describes its services, local assets and lifecycle. This host starts no ASP.NET server, SignalR connection or WebAssembly runtime.
 
 The sample supports Windows and Linux. See [ACCEPTANCE.md](ACCEPTANCE.md) for interactive runtime checks.
 
